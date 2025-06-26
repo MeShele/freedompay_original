@@ -1,5 +1,0 @@
-configuration_form:
-  path: /freedompay/configuration
-  methods: [ GET, POST ]
-  defaults:
-    _controller: 'PrestaShop\Module\FreedomPay\Controller\FreedomPayConfigurationController::index'

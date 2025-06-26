@@ -1,326 +1,218 @@
 <?php
-
-use JetBrains\PhpStorm\NoReturn;
-
 class FreedomPayPaymentModuleFrontController extends ModuleFrontController
 {
-    private const API_SOURCE_PARAM = 'source:cms_prestashop';
+    public $ssl = true;
+    public $display_column_left = false;
+    public $display_column_right = false;
+    private $logFile;
 
-    private Customer $customer;
-    private Address $address;
-    private $products;
-
-    /**
-     * @throws Exception
-     */
-    #[NoReturn] public function postProcess(): void
+    public function __construct()
     {
-
-        $this->customer = new Customer($this->context->cart->id_customer);
-        $this->address = new Address($this->context->cart->id_address_delivery);
-
-        $this->module->validateOrder(
-            (int)$this->context->cart->id,
-            (int)Configuration::get('PS_OS_CHEQUE'),
-            (float)$this->context->cart->getOrderTotal(),
-            'FreedomPay',
-            null,
-            [
-                'transaction_id' => Tools::passwdGen(),
-            ],
-            (int)$this->context->currency->id,
-            false,
-            $this->customer->secure_key
-        );
-
-        $paymentData = $this->generatePaymentData();
-
-        $response = $this->post(
-            Configuration::get('api_url') . '/init_payment.php',
-            $this->getRequestData($paymentData)
-        );
-
-        Tools::redirect($this->getRedirectUrlFromXmlResponse($response));
+        parent::__construct();
+        $this->logFile = dirname(__FILE__).'/../../freedompay.log';
     }
 
-    private function generatePaymentData(): array
+    public function initContent()
     {
-        $order = Order::getByCartId((int)$this->context->cart->id);
-
-        if ($order === null) {
-            throw new RuntimeException();
-        }
-
-        $paymentData['pg_salt'] = uniqid('', true);
-        $paymentData['pg_merchant_id'] = (int)Configuration::get('merchant_id');
-        $paymentData['pg_order_id'] = (string)$order->id;
-        $paymentData['pg_amount'] = (float)number_format($this->context->cart->getCartTotalPrice(), 2);
-        $paymentData['pg_description'] = 'Order №' . $order->id;
-        $paymentData['pg_user_contact_email'] = $this->customer->email;
-        $paymentData['pg_success_url'] = $this->context->link->getPageLink(
-            'order-confirmation',
-            true,
-            $this->context->language->id,
-            [
-                'id_cart' => (int) $this->context->cart->id,
-                'id_module' => (int) $this->module->id,
-                'id_order' => (int) $this->module->currentOrder,
-                'key' => $this->customer->secure_key,
-            ]
-        );
-        $paymentData['pg_result_url'] = $this->context->link->getModuleLink($this->module->name,  'callback',  [], true);
-        $paymentData['pg_currency'] = $this->context->currency->iso_code;
-        $paymentData['pg_param1'] = self::API_SOURCE_PARAM;
-
-        if (!empty($this->getPhone())) {
-            $paymentData['pg_user_phone'] = $this->getPhone();
-        }
-
-        if (Configuration::get('ofd')) {
-            $this->products = $this->context->cart->getProducts(true);
-
-            $ofdVersion = Configuration::get('ofd_version');
-
-            switch ($ofdVersion) {
-                case 'old_ru_1_05':
-                    $paymentData['pg_receipt_positions'] = $this->getReceiptPositionsForDeprecatedOfd();
-                    break;
-                case 'uz_1_0':
-                    $paymentData['pg_receipt'] = $this->getReceiptForGnk();
-                    break;
-                default:
-                    $paymentData['pg_receipt'] = $this->getReceipt();
+        // Restore session by token
+        if ($session_token = Tools::getValue('session_token')) {
+            $cart_id = (int)Db::getInstance()->getValue('
+                SELECT cart_id
+                FROM '._DB_PREFIX_.'freedompay_sessions
+                WHERE session_token = "'.pSQL($session_token).'"
+            ');
+            
+            if ($cart_id) {
+                $this->context->cart = new Cart($cart_id);
+                $this->log("Restored cart from session token: $cart_id");
             }
         }
 
-        return $paymentData;
+        $this->log('Payment controller initContent started');
+        
+        // Check cart validity
+        $cart = $this->context->cart;
+        $this->log("Cart ID: {$cart->id}, Customer ID: {$cart->id_customer}");
+        
+        $this->log("Cart validation details:
+            id: {$cart->id}
+            customer: {$cart->id_customer}
+            module active: " . ($this->module->active ? 'yes' : 'no')
+        );
+        
+        $invalid = false;
+        $reasons = [];
+        
+        if (!$cart->id) {
+            $invalid = true;
+            $reasons[] = 'no cart id';
+        }
+        
+        if (!$cart->id_customer) {
+            $invalid = true;
+            $reasons[] = 'no customer id';
+        }
+        
+        if (!$this->module->active) {
+            $invalid = true;
+            $reasons[] = 'module not active';
+        }
+        
+        if ($invalid) {
+            $this->log('Invalid cart: ' . implode(', ', $reasons) . ', redirecting to step 1');
+            Tools::redirect($this->context->link->getPageLink('order', true, null, array('step' => 1)));
+        }
+        
+        // Initialize payment with cart ID
+        $this->initPayment($cart);
     }
-
-    private function getPhone(): string
+    
+    private function initPayment($cart)
     {
-        $phone = !empty($this->address->phone_mobile) ? $this->address->phone_mobile : $this->address->phone;
-
-        return preg_replace('/\D/', '', $phone);
-    }
-
-    private function getReceiptPositionsForDeprecatedOfd(): array
-    {
-        $receiptPositions = [];
-
-        foreach ($this->products as $product) {
-            $receiptPosition = [
-                'name'     => $product['name'],
-                'tax_type' => Configuration::get('tax_type'),
-                'count'    => (int)$product['quantity'],
-                'price'    => (float)number_format($product['price'], 2),
-            ];
-
-            $receiptPositions[] = $receiptPosition;
+        $this->log("Initializing payment for cart: ".$cart->id);
+        
+        // Get configuration
+        $merchant_id = Configuration::get('FREEDOMPAY_MERCHANT_ID');
+        $api_url = Configuration::get('FREEDOMPAY_API_URL');
+        $secret = Configuration::get('FREEDOMPAY_MERCHANT_SECRET');
+        $test_mode = Configuration::get('FREEDOMPAY_TEST_MODE');
+        $total = $cart->getOrderTotal(true, Cart::BOTH);
+        
+        $this->log("Config: merchant_id=$merchant_id, api_url=$api_url, test_mode=$test_mode, total=$total");
+        
+        // Validate configuration
+        if (empty($merchant_id) || empty($secret) || empty($api_url)) {
+            $error = 'Payment module is not configured';
+            $this->log($error, true);
+            $this->errors[] = $this->module->l($error);
+            $this->setTemplate('payment_error.tpl');
+            return;
         }
-
-        $deliveryPrice = $this->context->cart->getPackageShippingCost();
-
-        if ($deliveryPrice > 0 && Configuration::get('ofd_in_delivery')) {
-            $receiptPosition = [
-                'count'    => 1,
-                'name'     => 'Доставка',
-                'tax_type' => Configuration::get('delivery_tax_type'),
-                'price'    => $deliveryPrice,
-            ];
-
-            $receiptPositions[] = $receiptPosition;
+        
+        // Check for existing token
+        $existing_token = Db::getInstance()->getValue('
+            SELECT session_token
+            FROM '._DB_PREFIX_.'freedompay_sessions
+            WHERE cart_id = '.(int)$cart->id.'
+        ');
+        
+        if ($existing_token) {
+            $session_token = $existing_token;
+            $this->log("Using existing session token: $session_token");
+        } else {
+            // Generate session token
+            $session_token = md5(uniqid(mt_rand(), true));
+            $this->log("Generated new session token: $session_token");
+            
+            // Save session token in database
+            Db::getInstance()->insert('freedompay_sessions', array(
+                'cart_id' => (int)$cart->id,
+                'session_token' => pSQL($session_token),
+                'date_add' => date('Y-m-d H:i:s'),
+            ));
         }
+        
+        // Prepare payment data
+        $paymentData = array(
+            'pg_merchant_id' => $merchant_id,
+            'pg_order_id' => $cart->id,
+            'pg_amount' => number_format($total, 2, '.', ''),
+            'pg_currency' => $this->context->currency->iso_code,
+            'pg_description' => 'Booking #' . $cart->id,
+            'pg_salt' => Tools::passwdGen(10, 'NUMERIC'),
+            'pg_success_url' => $this->context->link->getPageLink(
+                'order-confirmation',
+                true,
+                null,
+                array(
+                    'id_cart' => $cart->id,
+                    'id_module' => $this->module->id,
+                    'key' => $this->context->customer->secure_key,
+                    'session_token' => $session_token
+                )
+            ),
+            'pg_failure_url' => $this->context->link->getPageLink(
+                'order',
+                true,
+                null,
+                array('step' => 3)
+            ),
+            'pg_result_url' => $this->context->link->getModuleLink(
+                'freedompay',
+                'callback',
+                array('session_token' => $session_token),
+                true
+            ),
+            'pg_testing_mode' => $test_mode ? 1 : 0,
+            'pg_need_email_notification' => 1,
+            'pg_user_contact_email' => $this->context->customer->email,
+        );
+        
+        $this->log("Payment data: " . print_r($paymentData, true));
 
-        return $receiptPositions;
-    }
-
-    private function getReceiptForGnk(): array
-    {
-        $receipt = [];
-
-        $receipt['receipt_format'] = 'uz_1_0';
-        $receipt['positions'] = $this->getReceiptPositionsForGnk();
-
-        return $receipt;
-    }
-
-    private function getReceipt(): array
-    {
-        $receipt = [];
-
-        $receipt['receipt_format'] = Configuration::get('ofd_version');
-        $receipt['operation_type'] = Configuration::get('taxation_system')('TAXATION_SYSTEM');
-        $receipt['customer'] = $this->getReceiptCustomer();
-        $receipt['positions'] = $this->getReceiptPositionsForNewOfd();
-
-        return $receipt;
-    }
-
-    private function getReceiptPositionsForGnk(): array
-    {
-        $receiptPositions = [];
-
-        foreach ($this->products as $product) {
-            $receiptPosition = [
-                'quantity'     => (int)$product['quantity'],
-                'name'         => $product['name'],
-                'vat_code'     => Configuration::get('new_tax_type'),
-                'price'        => (float)number_format($product['price'], 2),
-                'ikpu_code'    => 132,
-                'package_code' => 123,
-                'unit_code'    => 123,
-            ];
-
-            $receiptPositions[] = $receiptPosition;
-        }
-
-        $deliveryPrice = $this->context->cart->getPackageShippingCost();
-
-        if ($deliveryPrice > 0 && Configuration::get('ofd_in_delivery')) {
-            $receiptPosition = [
-                'quantity'     => 1,
-                'name'         => 'Доставка',
-                'vat_code'     => Configuration::get('delivery_new_tax_type'),
-                'price'        => $deliveryPrice,
-                'ikpu_code'    => Configuration::get('delivery_ikpu_code'),
-                'package_code' => Configuration::get('delivery_package_code'),
-                'unit_code'    => Configuration::get('delivery_unit_code'),
-            ];
-
-            $receiptPositions[] = $receiptPosition;
-        }
-
-        return $receiptPositions;
-    }
-
-    private function getReceiptCustomer(): array
-    {
-        $customer = [];
-
-        $email = $this->customer->email;
-
-        if (!empty($email)) {
-            $customer['email'] = $this->customer->email;
-        }
-
-        $phone = $this->getPhone();
-
-        if (!empty($phone)) {
-            $customer['phone'] = $phone;
-        }
-
-        if (empty($email) && empty($phone)) {
-            throw new RuntimeException();
-        }
-
-        return $customer;
-    }
-
-    private function getReceiptPositionsForNewOfd(): array
-    {
-        $receiptPositions = [];
-
-        foreach ($this->products as $product) {
-            $receiptPosition = [
-                'quantity'       => (int)$product['quantity'],
-                'name'           => $product['name'],
-                'vat_code'       => Configuration::get('new_tax_type'),
-                'price'          => (float)number_format($product['price'], 2),
-                'payment_method' => Configuration::get('payment_method'),
-                'payment_object' => Configuration::get('payment_object'),
-            ];
-
-            if (Configuration::get('ofd_version') === 'ru_1_2') {
-                $receiptPosition['measure'] = Configuration::get('measure');
-            }
-
-            $receiptPositions[] = $receiptPosition;
-        }
-
-        $deliveryPrice = $this->context->cart->getPackageShippingCost();
-
-        if ($deliveryPrice > 0 && Configuration::get('ofd_in_delivery')) {
-            $receiptPosition = [
-                'quantity'       => 1,
-                'name'           => 'Доставка',
-                'vat_code'       => Configuration::get('delivery_new_tax_type'),
-                'price'          => $deliveryPrice,
-                'payment_method' => Configuration::get('delivery_payment_method'),
-                'payment_object' => Configuration::get('delivery_payment_object'),
-            ];
-
-            if (Configuration::get('ofd_version') === 'ru_1_2') {
-                $receiptPosition['measure'] = 'piece';
-            }
-
-            $receiptPositions[] = $receiptPosition;
-        }
-
-        return $receiptPositions;
-    }
-
-    private function post(string $url, string $postData): bool|string
-    {
-        $ch = curl_init($url);
-
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        // Generate signature
+        ksort($paymentData);
+        $signString = 'init_payment.php;' . implode(';', array_values($paymentData)) . ';' . $secret;
+        $signature = md5($signString);
+        $paymentData['pg_sig'] = $signature;
+        
+        $this->log("Signature string: $signString");
+        $this->log("Generated signature: $signature");
+        
+        // Send request to FreedomPay
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $api_url . '/init_payment.php');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($paymentData));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt(
-            $ch,
-            CURLOPT_POSTFIELDS,
-            $postData
-        );
-
-        $result = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        return $result;
-    }
-
-    private function getRedirectUrlFromXmlResponse(string $responseBody): string
-    {
-        $responseXml = simplexml_load_string($responseBody);
-
-        if (!$responseXml instanceof SimpleXMLElement || empty($responseXml->pg_redirect_url)) {
-            throw new RuntimeException();
+        $this->log("FreedomPay response (HTTP $httpCode): $response");
+        
+        if ($httpCode != 200) {
+            $error = "FreedomPay API returned HTTP code $httpCode";
+            $this->log($error, true);
+            $this->errors[] = $this->module->l($error);
+            $this->setTemplate('payment_error.tpl');
+            return;
         }
-
-        return (string)$responseXml->pg_redirect_url;
-    }
-
-    private function getRequestData(array $requestArray): string
-    {
-        $data = $this->prepareRequestData($requestArray);
-        ksort($data);
-        array_unshift($data, 'init_payment.php');
-        $data[] = Configuration::get('merchant_secret');
-        $str = implode(';', $data);
-        $requestArray['pg_sig'] = md5($str);
-
-        return json_encode($requestArray, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    }
-
-    private function prepareRequestData($data): array
-    {
-        if (!is_array($data)) {
-            return $data;
+        
+        // Parse XML response
+        $xml = simplexml_load_string($response);
+        if (!$xml) {
+            $error = "Failed to parse FreedomPay response";
+            $this->log($error, true);
+            $this->errors[] = $this->module->l($error);
+            $this->setTemplate('payment_error.tpl');
+            return;
         }
-
-        $result = [];
-        $i = 0;
-
-        foreach ($data as $key => $val) {
-            $name = ((string)$key) . sprintf('%03d', ++$i);
-
-            if (is_array($val)) {
-                $result = array_merge($result, $this->prepareRequestData($val, $name));
-
-                continue;
-            }
-
-            $result += [$name => (string)$val];
+        
+        // Check response status
+        if ((string)$xml->pg_status != 'ok') {
+            $errorCode = (string)$xml->pg_error_code;
+            $errorDesc = (string)$xml->pg_error_description;
+            $error = "FreedomPay error $errorCode: $errorDesc";
+            $this->log($error, true);
+            $this->errors[] = $this->module->l('Payment initiation failed: ') . $errorDesc;
+            $this->setTemplate('payment_error.tpl');
+            return;
         }
-
-        return $result;
+        
+        // Get redirect URL
+        $redirectUrl = (string)$xml->pg_redirect_url;
+        $this->log("Redirecting to payment page: $redirectUrl");
+        
+        // Redirect user
+        Tools::redirect($redirectUrl);
+    }
+    
+    private function log($message, $isError = false)
+    {
+        $prefix = date('[Y-m-d H:i:s]') . ($isError ? ' [ERROR] ' : ' ');
+        file_put_contents($this->logFile, $prefix . $message . PHP_EOL, FILE_APPEND);
     }
 }

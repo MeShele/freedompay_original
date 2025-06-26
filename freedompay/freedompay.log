@@ -1,0 +1,548 @@
+[2025-06-25 11:50:45] hookPayment triggered
+[2025-06-25 11:50:45] Cart ID: 121, Customer ID: 40
+[2025-06-25 11:50:45] Cart products count: 1
+[2025-06-25 11:50:45] Checking product ID: 36
+[2025-06-25 11:50:45] Is room product: Yes
+[2025-06-25 11:50:45] Is booking cart: Yes
+[2025-06-25 11:50:45] Booking total: 20
+[2025-06-25 11:50:45] Displaying payment button
+[2025-06-25 11:50:46] Payment controller initContent started
+[2025-06-25 11:50:46] Cart ID: 121, Customer ID: 40
+[2025-06-25 11:50:46] Cart validation details:
+            id: 121
+            customer: 40
+            module active: yes
+[2025-06-25 11:50:46] Initializing payment for cart: 121
+[2025-06-25 11:50:46] Config: merchant_id=560547, api_url=https://api.freedompay.kg, test_mode=0, total=20
+[2025-06-25 11:50:46] Using existing session token: 3ffe53782ae551e9e15e1f65931aa9c7
+[2025-06-25 11:50:46] Payment data: Array
+(
+    [pg_merchant_id] => 560547
+    [pg_order_id] => 121
+    [pg_amount] => 20.00
+    [pg_currency] => KGS
+    [pg_description] => Booking #121
+    [pg_salt] => 3348126387
+    [pg_success_url] => https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=121&id_module=109&key=18c013472a4e9f1d4369e429a84f0b73&session_token=3ffe53782ae551e9e15e1f65931aa9c7
+    [pg_failure_url] => https://akbermet.kg/ru/order?step=3
+    [pg_result_url] => https://akbermet.kg/ru/module/freedompay/callback?session_token=3ffe53782ae551e9e15e1f65931aa9c7
+    [pg_testing_mode] => 0
+    [pg_need_email_notification] => 1
+    [pg_user_contact_email] => zxc@xitroo.com
+)
+
+[2025-06-25 11:50:46] Signature string: init_payment.php;20.00;KGS;Booking #121;https://akbermet.kg/ru/order?step=3;560547;1;121;https://akbermet.kg/ru/module/freedompay/callback?session_token=3ffe53782ae551e9e15e1f65931aa9c7;3348126387;https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=121&id_module=109&key=18c013472a4e9f1d4369e429a84f0b73&session_token=3ffe53782ae551e9e15e1f65931aa9c7;0;zxc@xitroo.com;nzruCytCvMfE6tPd
+[2025-06-25 11:50:46] Generated signature: d380b2739bc875169ff387c50cf0d786
+[2025-06-25 11:50:46] FreedomPay response (HTTP 200): <?xml version="1.0" encoding="utf-8"?>
+<response><pg_status>ok</pg_status><pg_payment_id>1432144712</pg_payment_id><pg_redirect_url>https://customer.freedompay.kg/pay.html?customer=0197a5a3-8512-7230-b66e-3907db727e01</pg_redirect_url><pg_redirect_url_type>need data</pg_redirect_url_type><pg_salt>DkjunPIdueozjzno</pg_salt><pg_sig>dd38dbae31e038ca57d46a1caedae358</pg_sig></response>
+
+[2025-06-25 11:50:46] Redirecting to payment page: https://customer.freedompay.kg/pay.html?customer=0197a5a3-8512-7230-b66e-3907db727e01
+[2025-06-25 11:51:37] Callback received: Array
+(
+    [session_token] => 3ffe53782ae551e9e15e1f65931aa9c7
+    [pg_order_id] => 121
+    [pg_payment_id] => 1432144712
+    [pg_amount] => 20
+    [pg_currency] => KGS
+    [pg_net_amount] => 19.3
+    [pg_ps_amount] => 20
+    [pg_ps_full_amount] => 20
+    [pg_ps_currency] => KGS
+    [pg_description] => Booking #121
+    [pg_result] => 1
+    [pg_payment_date] => 2025-06-25 11:51:30
+    [pg_can_reject] => 1
+    [pg_user_phone] => 996999841015
+    [pg_need_phone_notification] => 0
+    [pg_user_contact_email] => zxc@xitroo.com
+    [pg_need_email_notification] => 1
+    [pg_payment_method] => bankcard
+    [pg_reference] => 517605661338
+    [pg_captured] => 1
+    [pg_card_pan] => 4177-49XX-XXXX-2827
+    [pg_card_exp] => 08/29
+    [pg_card_owner] => ERMEK SHERALIEV
+    [pg_card_brand] => VI
+    [pg_auth_code] => 419029
+    [pg_salt] => pSpXWf7Ec7xj0rDs
+    [pg_sig] => 02d94c12e2bef02fc4c8f2c8c8c5d254
+)
+
+[2025-06-25 11:51:37] Found cart ID: 121
+[2025-06-25 11:51:37] Signature string: callback;20;419029;1;1;VI;08/29;ERMEK SHERALIEV;4177-49XX-XXXX-2827;KGS;Booking #121;19.3;121;2025-06-25 11:51:30;1432144712;bankcard;20;KGS;20;517605661338;1;pSpXWf7Ec7xj0rDs;zxc@xitroo.com;996999841015;nzruCytCvMfE6tPd
+[2025-06-25 11:51:37] Generated signature: a1bee8a1291e3afd18f1f3f43437f4d3, received: 02d94c12e2bef02fc4c8f2c8c8c5d254
+[2025-06-25 11:51:37] [ERROR] Invalid signature
+[2025-06-25 11:59:37] hookPayment triggered
+[2025-06-25 11:59:37] Cart ID: 121, Customer ID: 40
+[2025-06-25 11:59:37] Cart products count: 1
+[2025-06-25 11:59:37] Checking product ID: 36
+[2025-06-25 11:59:37] Is room product: Yes
+[2025-06-25 11:59:37] Is booking cart: Yes
+[2025-06-25 11:59:37] Booking total: 20
+[2025-06-25 11:59:37] Displaying payment button
+[2025-06-25 12:12:58] hookPayment triggered
+[2025-06-25 12:12:58] Cart ID: 122, Customer ID: 41
+[2025-06-25 12:12:58] Cart products count: 1
+[2025-06-25 12:12:58] Checking product ID: 36
+[2025-06-25 12:12:58] Is room product: Yes
+[2025-06-25 12:12:58] Is booking cart: Yes
+[2025-06-25 12:12:58] Booking total: 20
+[2025-06-25 12:12:58] Displaying payment button
+[2025-06-25 12:13:02] Payment controller initContent started
+[2025-06-25 12:13:02] Cart ID: 122, Customer ID: 41
+[2025-06-25 12:13:02] Cart validation details:
+            id: 122
+            customer: 41
+            module active: yes
+[2025-06-25 12:13:02] Initializing payment for cart: 122
+[2025-06-25 12:13:02] Config: merchant_id=560547, api_url=https://api.freedompay.kg, test_mode=0, total=20
+[2025-06-25 12:13:02] Generated new session token: 2c15e68c01516fb41cc6efc8d6cddc97
+[2025-06-25 12:13:02] Payment data: Array
+(
+    [pg_merchant_id] => 560547
+    [pg_order_id] => 122
+    [pg_amount] => 20.00
+    [pg_currency] => KGS
+    [pg_description] => Booking #122
+    [pg_salt] => 3049668464
+    [pg_success_url] => https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=122&id_module=109&key=2fa869e50528ebe65e1a89762814848d&session_token=2c15e68c01516fb41cc6efc8d6cddc97
+    [pg_failure_url] => https://akbermet.kg/ru/order?step=3
+    [pg_result_url] => https://akbermet.kg/ru/module/freedompay/callback?session_token=2c15e68c01516fb41cc6efc8d6cddc97
+    [pg_testing_mode] => 0
+    [pg_need_email_notification] => 1
+    [pg_user_contact_email] => aidarbekr@mail.ru
+)
+
+[2025-06-25 12:13:02] Signature string: init_payment.php;20.00;KGS;Booking #122;https://akbermet.kg/ru/order?step=3;560547;1;122;https://akbermet.kg/ru/module/freedompay/callback?session_token=2c15e68c01516fb41cc6efc8d6cddc97;3049668464;https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=122&id_module=109&key=2fa869e50528ebe65e1a89762814848d&session_token=2c15e68c01516fb41cc6efc8d6cddc97;0;aidarbekr@mail.ru;nzruCytCvMfE6tPd
+[2025-06-25 12:13:02] Generated signature: 6422bb0b3269ac9fb054a2717ea3ccbb
+[2025-06-25 12:13:02] FreedomPay response (HTTP 200): <?xml version="1.0" encoding="utf-8"?>
+<response><pg_status>ok</pg_status><pg_payment_id>1432147338</pg_payment_id><pg_redirect_url>https://customer.freedompay.kg/pay.html?customer=0197a5b7-e78b-73e7-a193-18a35c16773f</pg_redirect_url><pg_redirect_url_type>need data</pg_redirect_url_type><pg_salt>hfZpk6V16tsT4C40</pg_salt><pg_sig>3aace7c3cdfcaf7b02eb1a4d87939401</pg_sig></response>
+
+[2025-06-25 12:13:02] Redirecting to payment page: https://customer.freedompay.kg/pay.html?customer=0197a5b7-e78b-73e7-a193-18a35c16773f
+[2025-06-25 12:14:50] 📩 Callback received: Array
+(
+    [session_token] => 2c15e68c01516fb41cc6efc8d6cddc97
+    [pg_order_id] => 122
+    [pg_payment_id] => 1432147338
+    [pg_amount] => 20
+    [pg_currency] => KGS
+    [pg_net_amount] => 19.3
+    [pg_ps_amount] => 20
+    [pg_ps_full_amount] => 20
+    [pg_ps_currency] => KGS
+    [pg_description] => Booking #122
+    [pg_result] => 1
+    [pg_payment_date] => 2025-06-25 12:14:44
+    [pg_can_reject] => 1
+    [pg_user_phone] => 996500115133
+    [pg_need_phone_notification] => 0
+    [pg_user_contact_email] => aidarbekr@mail.ru
+    [pg_need_email_notification] => 1
+    [pg_payment_method] => bankcard
+    [pg_reference] => 517606661810
+    [pg_captured] => 1
+    [pg_card_pan] => 4215-89XX-XXXX-8118
+    [pg_card_exp] => 11/27
+    [pg_card_owner] => aidarbekuly ruslan
+    [pg_card_brand] => VI
+    [pg_auth_code] => 879570
+    [pg_salt] => LRySwjBKpMH3riKN
+    [pg_sig] => c0e9b7f60f180ce3b2330f15f3767c17
+)
+
+[2025-06-25 12:14:50] ✅ Found cart ID: 122
+[2025-06-25 12:14:50] 🔐 Signature string: callback;20;879570;1;1;VI;11/27;aidarbekuly ruslan;4215-89XX-XXXX-8118;KGS;Booking #122;19.3;122;2025-06-25 12:14:44;1432147338;bankcard;20;KGS;20;517606661810;1;LRySwjBKpMH3riKN;aidarbekr@mail.ru;996500115133;nzruCytCvMfE6tPd
+[2025-06-25 12:14:50] 🔐 Signature check: generated = 4151b894fc7bffa04876d4dc53eb68d7, received = c0e9b7f60f180ce3b2330f15f3767c17
+[2025-06-25 12:14:50] [ERROR] ⛔ Invalid signature
+[2025-06-25 12:18:31] hookPayment triggered
+[2025-06-25 12:18:31] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:18:31] Cart products count: 2
+[2025-06-25 12:18:31] Checking product ID: 36
+[2025-06-25 12:18:31] Is room product: Yes
+[2025-06-25 12:18:31] Is booking cart: Yes
+[2025-06-25 12:18:31] Booking total: 21620
+[2025-06-25 12:18:31] Displaying payment button
+[2025-06-25 12:18:56] hookPayment triggered
+[2025-06-25 12:18:56] Cart ID: 122, Customer ID: 41
+[2025-06-25 12:18:56] Cart products count: 1
+[2025-06-25 12:18:56] Checking product ID: 36
+[2025-06-25 12:18:56] Is room product: Yes
+[2025-06-25 12:18:56] Is booking cart: Yes
+[2025-06-25 12:18:56] Booking total: 90
+[2025-06-25 12:18:56] Displaying payment button
+[2025-06-25 12:19:05] hookPayment triggered
+[2025-06-25 12:19:05] Cart ID: 122, Customer ID: 41
+[2025-06-25 12:19:05] Cart products count: 1
+[2025-06-25 12:19:05] Checking product ID: 36
+[2025-06-25 12:19:05] Is room product: Yes
+[2025-06-25 12:19:05] Is booking cart: Yes
+[2025-06-25 12:19:05] Booking total: 90
+[2025-06-25 12:19:05] Displaying payment button
+[2025-06-25 12:19:08] hookPayment triggered
+[2025-06-25 12:19:08] Cart ID: 122, Customer ID: 41
+[2025-06-25 12:19:08] Cart products count: 1
+[2025-06-25 12:19:08] Checking product ID: 36
+[2025-06-25 12:19:08] Is room product: Yes
+[2025-06-25 12:19:08] Is booking cart: Yes
+[2025-06-25 12:19:08] Booking total: 90
+[2025-06-25 12:19:08] Displaying payment button
+[2025-06-25 12:25:21] hookPayment triggered
+[2025-06-25 12:25:21] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:25:21] Cart products count: 3
+[2025-06-25 12:25:21] Checking product ID: 36
+[2025-06-25 12:25:21] Is room product: Yes
+[2025-06-25 12:25:21] Is booking cart: Yes
+[2025-06-25 12:25:21] Booking total: 92620
+[2025-06-25 12:25:21] Displaying payment button
+[2025-06-25 12:25:25] hookPayment triggered
+[2025-06-25 12:25:25] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:25:25] Cart products count: 3
+[2025-06-25 12:25:25] Checking product ID: 36
+[2025-06-25 12:25:25] Is room product: Yes
+[2025-06-25 12:25:25] Is booking cart: Yes
+[2025-06-25 12:25:25] Booking total: 92620
+[2025-06-25 12:25:25] Displaying payment button
+[2025-06-25 12:25:26] hookPayment triggered
+[2025-06-25 12:25:26] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:25:26] Cart products count: 2
+[2025-06-25 12:25:26] Checking product ID: 36
+[2025-06-25 12:25:26] Is room product: Yes
+[2025-06-25 12:25:26] Is booking cart: Yes
+[2025-06-25 12:25:26] Booking total: 21620
+[2025-06-25 12:25:26] Displaying payment button
+[2025-06-25 12:25:26] hookPayment triggered
+[2025-06-25 12:25:26] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:25:26] Cart products count: 2
+[2025-06-25 12:25:26] Checking product ID: 36
+[2025-06-25 12:25:26] Is room product: Yes
+[2025-06-25 12:25:26] Is booking cart: Yes
+[2025-06-25 12:25:26] Booking total: 21620
+[2025-06-25 12:25:26] Displaying payment button
+[2025-06-25 12:25:26] hookPayment triggered
+[2025-06-25 12:25:26] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:25:26] Cart products count: 1
+[2025-06-25 12:25:26] Checking product ID: 36
+[2025-06-25 12:25:26] Is room product: Yes
+[2025-06-25 12:25:26] Is booking cart: Yes
+[2025-06-25 12:25:26] Booking total: 20
+[2025-06-25 12:25:26] Displaying payment button
+[2025-06-25 12:25:28] hookPayment triggered
+[2025-06-25 12:25:28] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:25:28] Cart products count: 1
+[2025-06-25 12:25:28] Checking product ID: 36
+[2025-06-25 12:25:28] Is room product: Yes
+[2025-06-25 12:25:28] Is booking cart: Yes
+[2025-06-25 12:25:28] Booking total: 20
+[2025-06-25 12:25:28] Displaying payment button
+[2025-06-25 12:25:30] hookPayment triggered
+[2025-06-25 12:25:30] Cart ID: 121, Customer ID: 40
+[2025-06-25 12:25:30] Cart products count: 1
+[2025-06-25 12:25:30] Checking product ID: 36
+[2025-06-25 12:25:30] Is room product: Yes
+[2025-06-25 12:25:30] Is booking cart: Yes
+[2025-06-25 12:25:30] Booking total: 20
+[2025-06-25 12:25:30] Displaying payment button
+[2025-06-25 19:20:02] hookPayment triggered
+[2025-06-25 19:20:02] Cart ID: 123, Customer ID: 42
+[2025-06-25 19:20:02] Cart products count: 1
+[2025-06-25 19:20:02] Checking product ID: 32
+[2025-06-25 19:20:02] Is room product: Yes
+[2025-06-25 19:20:02] Is booking cart: Yes
+[2025-06-25 19:20:02] Booking total: 37600
+[2025-06-25 19:20:02] Displaying payment button
+[2025-06-25 19:20:59] hookPayment triggered
+[2025-06-25 19:20:59] Cart ID: 123, Customer ID: 42
+[2025-06-25 19:20:59] Cart products count: 1
+[2025-06-25 19:20:59] Checking product ID: 32
+[2025-06-25 19:20:59] Is room product: Yes
+[2025-06-25 19:20:59] Is booking cart: Yes
+[2025-06-25 19:20:59] Booking total: 37600
+[2025-06-25 19:20:59] Displaying payment button
+[2025-06-26 09:51:10] Loading module configuration page
+[2025-06-26 10:32:07] hookPayment triggered
+[2025-06-26 10:32:07] Cart ID: 125, Customer ID: 43
+[2025-06-26 10:32:07] Cart products count: 1
+[2025-06-26 10:32:07] Checking product ID: 36
+[2025-06-26 10:32:07] Is room product: Yes
+[2025-06-26 10:32:07] Is booking cart: Yes
+[2025-06-26 10:32:07] Booking total: 20
+[2025-06-26 10:32:07] Displaying payment button
+[2025-06-26 10:32:08] Payment controller initContent started
+[2025-06-26 10:32:08] Cart ID: 125, Customer ID: 43
+[2025-06-26 10:32:08] Cart validation details:
+            id: 125
+            customer: 43
+            module active: yes
+[2025-06-26 10:32:08] Initializing payment for cart: 125
+[2025-06-26 10:32:08] Config: merchant_id=560547, api_url=https://api.freedompay.kg, test_mode=0, total=20
+[2025-06-26 10:32:08] Generated new session token: 0c0835118b68833d908462f874e205c5
+[2025-06-26 10:32:08] Payment data: Array
+(
+    [pg_merchant_id] => 560547
+    [pg_order_id] => 125
+    [pg_amount] => 20.00
+    [pg_currency] => KGS
+    [pg_description] => Booking #125
+    [pg_salt] => 0364787165
+    [pg_success_url] => https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=125&id_module=109&key=33ca783bf31faf2f873d856fff5af193&session_token=0c0835118b68833d908462f874e205c5
+    [pg_failure_url] => https://akbermet.kg/ru/order?step=3
+    [pg_result_url] => https://akbermet.kg/ru/module/freedompay/callback?session_token=0c0835118b68833d908462f874e205c5
+    [pg_testing_mode] => 0
+    [pg_need_email_notification] => 1
+    [pg_user_contact_email] => zxcv@xitroo.com
+)
+
+[2025-06-26 10:32:08] Signature string: init_payment.php;20.00;KGS;Booking #125;https://akbermet.kg/ru/order?step=3;560547;1;125;https://akbermet.kg/ru/module/freedompay/callback?session_token=0c0835118b68833d908462f874e205c5;0364787165;https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=125&id_module=109&key=33ca783bf31faf2f873d856fff5af193&session_token=0c0835118b68833d908462f874e205c5;0;zxcv@xitroo.com;nzruCytCvMfE6tPd
+[2025-06-26 10:32:08] Generated signature: 0368fd9dd2523f8ff64c7945add9dd79
+[2025-06-26 10:32:09] FreedomPay response (HTTP 200): <?xml version="1.0" encoding="utf-8"?>
+<response><pg_status>ok</pg_status><pg_payment_id>1432269367</pg_payment_id><pg_redirect_url>https://customer.freedompay.kg/pay.html?customer=0197aa81-e646-70af-9679-f69ae368cb8a</pg_redirect_url><pg_redirect_url_type>need data</pg_redirect_url_type><pg_salt>SA7ajhgyHT44d1FV</pg_salt><pg_sig>459e517ba6233b2b2457f917e13abed6</pg_sig></response>
+
+[2025-06-26 10:32:09] Redirecting to payment page: https://customer.freedompay.kg/pay.html?customer=0197aa81-e646-70af-9679-f69ae368cb8a
+[2025-06-26 10:32:51] 📩 Callback received: Array
+(
+    [session_token] => 0c0835118b68833d908462f874e205c5
+    [pg_order_id] => 125
+    [pg_payment_id] => 1432269367
+    [pg_amount] => 20
+    [pg_currency] => KGS
+    [pg_net_amount] => 19.3
+    [pg_ps_amount] => 20
+    [pg_ps_full_amount] => 20
+    [pg_ps_currency] => KGS
+    [pg_description] => Booking #125
+    [pg_result] => 1
+    [pg_payment_date] => 2025-06-26 10:32:46
+    [pg_can_reject] => 1
+    [pg_user_phone] => 996578686876
+    [pg_need_phone_notification] => 0
+    [pg_user_contact_email] => zxcv@xitroo.com
+    [pg_need_email_notification] => 1
+    [pg_payment_method] => bankcard
+    [pg_reference] => 517704690372
+    [pg_captured] => 1
+    [pg_card_pan] => 4177-49XX-XXXX-2827
+    [pg_card_exp] => 08/29
+    [pg_card_owner] => ERMEK SHERALIEV
+    [pg_card_brand] => VI
+    [pg_auth_code] => 038609
+    [pg_salt] => rdiuDJAx6HmecaIt
+    [pg_sig] => 3bf9116a9c9494ee688c62721a10c505
+)
+
+[2025-06-26 10:32:51] ✅ Found cart ID: 125
+[2025-06-26 10:32:51] 🔐 Signature string: callback;20;038609;1;1;VI;08/29;ERMEK SHERALIEV;4177-49XX-XXXX-2827;KGS;Booking #125;19.3;125;2025-06-26 10:32:46;1432269367;bankcard;20;KGS;20;517704690372;1;rdiuDJAx6HmecaIt;zxcv@xitroo.com;996578686876;nzruCytCvMfE6tPd
+[2025-06-26 10:32:51] 🔐 Signature check: generated = 315941c9b0737d4f724b54c382fcedfa, received = 3bf9116a9c9494ee688c62721a10c505
+[2025-06-26 10:32:51] [ERROR] ⛔ Invalid signature
+[2025-06-26 11:26:12] hookPayment triggered
+[2025-06-26 11:26:12] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:12] Cart products count: 1
+[2025-06-26 11:26:12] Checking product ID: 36
+[2025-06-26 11:26:12] Is room product: Yes
+[2025-06-26 11:26:12] Is booking cart: Yes
+[2025-06-26 11:26:12] Booking total: 40
+[2025-06-26 11:26:12] Displaying payment button
+[2025-06-26 11:26:14] hookPayment triggered
+[2025-06-26 11:26:14] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:14] Cart products count: 1
+[2025-06-26 11:26:14] Checking product ID: 36
+[2025-06-26 11:26:14] Is room product: Yes
+[2025-06-26 11:26:14] Is booking cart: Yes
+[2025-06-26 11:26:14] Booking total: 40
+[2025-06-26 11:26:14] Displaying payment button
+[2025-06-26 11:26:17] hookPayment triggered
+[2025-06-26 11:26:17] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:17] Cart products count: 1
+[2025-06-26 11:26:17] Checking product ID: 36
+[2025-06-26 11:26:17] Is room product: Yes
+[2025-06-26 11:26:17] Is booking cart: Yes
+[2025-06-26 11:26:17] Booking total: 40
+[2025-06-26 11:26:17] Displaying payment button
+[2025-06-26 11:26:18] hookPayment triggered
+[2025-06-26 11:26:18] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:18] Cart products count: 1
+[2025-06-26 11:26:18] Checking product ID: 36
+[2025-06-26 11:26:18] Is room product: Yes
+[2025-06-26 11:26:18] Is booking cart: Yes
+[2025-06-26 11:26:18] Booking total: 40
+[2025-06-26 11:26:18] Displaying payment button
+[2025-06-26 11:26:19] hookPayment triggered
+[2025-06-26 11:26:19] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:19] Cart products count: 1
+[2025-06-26 11:26:19] Checking product ID: 36
+[2025-06-26 11:26:19] Is room product: Yes
+[2025-06-26 11:26:19] Is booking cart: Yes
+[2025-06-26 11:26:19] Booking total: 40
+[2025-06-26 11:26:19] Displaying payment button
+[2025-06-26 11:26:23] hookPayment triggered
+[2025-06-26 11:26:23] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:23] Cart products count: 1
+[2025-06-26 11:26:23] Checking product ID: 36
+[2025-06-26 11:26:23] Is room product: Yes
+[2025-06-26 11:26:23] Is booking cart: Yes
+[2025-06-26 11:26:23] Booking total: 40
+[2025-06-26 11:26:23] Displaying payment button
+[2025-06-26 11:26:41] hookPayment triggered
+[2025-06-26 11:26:41] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:41] Cart products count: 1
+[2025-06-26 11:26:41] Checking product ID: 36
+[2025-06-26 11:26:41] Is room product: Yes
+[2025-06-26 11:26:41] Is booking cart: Yes
+[2025-06-26 11:26:41] Booking total: 20
+[2025-06-26 11:26:41] Displaying payment button
+[2025-06-26 11:26:42] hookPayment triggered
+[2025-06-26 11:26:42] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:42] Cart products count: 1
+[2025-06-26 11:26:42] Checking product ID: 36
+[2025-06-26 11:26:42] Is room product: Yes
+[2025-06-26 11:26:42] Is booking cart: Yes
+[2025-06-26 11:26:42] Booking total: 20
+[2025-06-26 11:26:42] Displaying payment button
+[2025-06-26 11:26:43] hookPayment triggered
+[2025-06-26 11:26:43] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:43] Cart products count: 1
+[2025-06-26 11:26:43] Checking product ID: 36
+[2025-06-26 11:26:43] Is room product: Yes
+[2025-06-26 11:26:43] Is booking cart: Yes
+[2025-06-26 11:26:43] Booking total: 20
+[2025-06-26 11:26:43] Displaying payment button
+[2025-06-26 11:26:44] Payment controller initContent started
+[2025-06-26 11:26:44] Cart ID: 125, Customer ID: 43
+[2025-06-26 11:26:44] Cart validation details:
+            id: 125
+            customer: 43
+            module active: yes
+[2025-06-26 11:26:44] Initializing payment for cart: 125
+[2025-06-26 11:26:44] Config: merchant_id=560547, api_url=https://api.freedompay.kg, test_mode=0, total=20
+[2025-06-26 11:26:44] Using existing session token: 0c0835118b68833d908462f874e205c5
+[2025-06-26 11:26:44] Payment data: Array
+(
+    [pg_merchant_id] => 560547
+    [pg_order_id] => 125
+    [pg_amount] => 20.00
+    [pg_currency] => KGS
+    [pg_description] => Booking #125
+    [pg_salt] => 9857805255
+    [pg_success_url] => https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=125&id_module=109&key=33ca783bf31faf2f873d856fff5af193&session_token=0c0835118b68833d908462f874e205c5
+    [pg_failure_url] => https://akbermet.kg/ru/order?step=3
+    [pg_result_url] => https://akbermet.kg/ru/module/freedompay/callback?session_token=0c0835118b68833d908462f874e205c5
+    [pg_testing_mode] => 0
+    [pg_need_email_notification] => 1
+    [pg_user_contact_email] => zxcv@xitroo.com
+)
+
+[2025-06-26 11:26:44] Signature string: init_payment.php;20.00;KGS;Booking #125;https://akbermet.kg/ru/order?step=3;560547;1;125;https://akbermet.kg/ru/module/freedompay/callback?session_token=0c0835118b68833d908462f874e205c5;9857805255;https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=125&id_module=109&key=33ca783bf31faf2f873d856fff5af193&session_token=0c0835118b68833d908462f874e205c5;0;zxcv@xitroo.com;nzruCytCvMfE6tPd
+[2025-06-26 11:26:44] Generated signature: 278b8a31729dfc7fb36d1bfb56db60a8
+[2025-06-26 11:26:45] FreedomPay response (HTTP 200): <?xml version="1.0" encoding="utf-8"?>
+<response><pg_status>ok</pg_status><pg_payment_id>1432274556</pg_payment_id><pg_redirect_url>https://customer.freedompay.kg/pay.html?customer=0197aab3-e2f8-72ab-a1e3-d34404dee2f8</pg_redirect_url><pg_redirect_url_type>need data</pg_redirect_url_type><pg_salt>V3DRt6MBrEyMJRch</pg_salt><pg_sig>ad4d501f41ce1534408d31855482a48f</pg_sig></response>
+
+[2025-06-26 11:26:45] Redirecting to payment page: https://customer.freedompay.kg/pay.html?customer=0197aab3-e2f8-72ab-a1e3-d34404dee2f8
+[2025-06-26 11:27:27] 📩 Callback received: Array
+(
+    [session_token] => 0c0835118b68833d908462f874e205c5
+    [pg_order_id] => 125
+    [pg_payment_id] => 1432274556
+    [pg_amount] => 20
+    [pg_currency] => KGS
+    [pg_net_amount] => 19.3
+    [pg_ps_amount] => 20
+    [pg_ps_full_amount] => 20
+    [pg_ps_currency] => KGS
+    [pg_description] => Booking #125
+    [pg_result] => 1
+    [pg_payment_date] => 2025-06-26 11:27:22
+    [pg_can_reject] => 1
+    [pg_user_phone] => 996999841015
+    [pg_need_phone_notification] => 0
+    [pg_user_contact_email] => zxcv@xitroo.com
+    [pg_need_email_notification] => 1
+    [pg_payment_method] => bankcard
+    [pg_reference] => 517705691193
+    [pg_captured] => 1
+    [pg_card_pan] => 4177-49XX-XXXX-2827
+    [pg_card_exp] => 08/29
+    [pg_card_owner] => ERMEK SHERALIEV
+    [pg_card_brand] => VI
+    [pg_auth_code] => 490706
+    [pg_salt] => Ddy5S35FB4b2liSX
+    [pg_sig] => c537c206f22b658ef9e99f097fc56a56
+)
+
+[2025-06-26 11:27:27] ✅ Found cart ID: 125
+[2025-06-26 11:27:27] 🔐 Signature string: callback;20;490706;1;1;VI;08/29;ERMEK SHERALIEV;4177-49XX-XXXX-2827;KGS;Booking #125;19.3;125;2025-06-26 11:27:22;1432274556;bankcard;20;KGS;20;517705691193;1;Ddy5S35FB4b2liSX;zxcv@xitroo.com;996999841015;nzruCytCvMfE6tPd
+[2025-06-26 11:27:27] 🔐 Signature check: generated = d40a619e31b8bfc99a4ac897c8537239, received = c537c206f22b658ef9e99f097fc56a56
+[2025-06-26 11:27:27] [ERROR] ⛔ Invalid signature
+[2025-06-26 13:09:41] hookPayment triggered
+[2025-06-26 13:09:41] Cart ID: 127, Customer ID: 38
+[2025-06-26 13:09:41] Cart products count: 1
+[2025-06-26 13:09:41] Checking product ID: 36
+[2025-06-26 13:09:41] Is room product: Yes
+[2025-06-26 13:09:41] Is booking cart: Yes
+[2025-06-26 13:09:41] Booking total: 20
+[2025-06-26 13:09:41] Displaying payment button
+[2025-06-26 13:09:41] Payment controller initContent started
+[2025-06-26 13:09:41] Cart ID: 127, Customer ID: 38
+[2025-06-26 13:09:41] Cart validation details:
+            id: 127
+            customer: 38
+            module active: yes
+[2025-06-26 13:09:41] Initializing payment for cart: 127
+[2025-06-26 13:09:42] Config: merchant_id=560547, api_url=https://api.freedompay.kg, test_mode=0, total=20
+[2025-06-26 13:09:42] Generated new session token: e40f331d925ec2eb30342802cd7d3335
+[2025-06-26 13:09:42] Payment data: Array
+(
+    [pg_merchant_id] => 560547
+    [pg_order_id] => 127
+    [pg_amount] => 20.00
+    [pg_currency] => KGS
+    [pg_description] => Booking #127
+    [pg_salt] => 4645583838
+    [pg_success_url] => https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=127&id_module=109&key=c07f4cb7dc95000a1932b86483dcee50&session_token=e40f331d925ec2eb30342802cd7d3335
+    [pg_failure_url] => https://akbermet.kg/ru/order?step=3
+    [pg_result_url] => https://akbermet.kg/ru/module/freedompay/callback?session_token=e40f331d925ec2eb30342802cd7d3335
+    [pg_testing_mode] => 0
+    [pg_need_email_notification] => 1
+    [pg_user_contact_email] => qwe@xitroo.com
+)
+
+[2025-06-26 13:09:42] Signature string: init_payment.php;20.00;KGS;Booking #127;https://akbermet.kg/ru/order?step=3;560547;1;127;https://akbermet.kg/ru/module/freedompay/callback?session_token=e40f331d925ec2eb30342802cd7d3335;4645583838;https://akbermet.kg/ru/index.php?controller=order-confirmation&id_cart=127&id_module=109&key=c07f4cb7dc95000a1932b86483dcee50&session_token=e40f331d925ec2eb30342802cd7d3335;0;qwe@xitroo.com;nzruCytCvMfE6tPd
+[2025-06-26 13:09:42] Generated signature: 683623a5ad8fbbcb7531cfe43c6447a5
+[2025-06-26 13:09:42] FreedomPay response (HTTP 200): <?xml version="1.0" encoding="utf-8"?>
+<response><pg_status>ok</pg_status><pg_payment_id>1432285682</pg_payment_id><pg_redirect_url>https://customer.freedompay.kg/pay.html?customer=0197ab12-2567-7196-9a17-3c4fc9646668</pg_redirect_url><pg_redirect_url_type>need data</pg_redirect_url_type><pg_salt>uyobLFLHJVmBQu9O</pg_salt><pg_sig>1688d2eeb612dbacb76322520cc27dbc</pg_sig></response>
+
+[2025-06-26 13:09:42] Redirecting to payment page: https://customer.freedompay.kg/pay.html?customer=0197ab12-2567-7196-9a17-3c4fc9646668
+[2025-06-26 13:10:39] 📩 Callback received: Array
+(
+    [session_token] => e40f331d925ec2eb30342802cd7d3335
+    [pg_order_id] => 127
+    [pg_payment_id] => 1432285682
+    [pg_amount] => 20
+    [pg_currency] => KGS
+    [pg_net_amount] => 19.3
+    [pg_ps_amount] => 20
+    [pg_ps_full_amount] => 20
+    [pg_ps_currency] => KGS
+    [pg_description] => Booking #127
+    [pg_result] => 1
+    [pg_payment_date] => 2025-06-26 13:10:34
+    [pg_can_reject] => 1
+    [pg_user_phone] => 996999841015
+    [pg_need_phone_notification] => 0
+    [pg_user_contact_email] => qwe@xitroo.com
+    [pg_need_email_notification] => 1
+    [pg_payment_method] => bankcard
+    [pg_reference] => 517707695481
+    [pg_captured] => 1
+    [pg_card_pan] => 4177-49XX-XXXX-2827
+    [pg_card_exp] => 08/29
+    [pg_card_owner] => ERMEK SHERALIEV
+    [pg_card_brand] => VI
+    [pg_auth_code] => 468296
+    [pg_salt] => AjBChAUyO1bHcuQN
+    [pg_sig] => bfd98c2177bab1dcb205ccc6b856a070
+)
+
+[2025-06-26 13:10:39] ✅ Found cart ID: 127
+[2025-06-26 13:10:39] 🔐 Signature string: callback;20;468296;1;1;VI;08/29;ERMEK SHERALIEV;4177-49XX-XXXX-2827;KGS;Booking #127;19.3;127;2025-06-26 13:10:34;1432285682;bankcard;20;KGS;20;517707695481;1;AjBChAUyO1bHcuQN;qwe@xitroo.com;996999841015;nzruCytCvMfE6tPd
+[2025-06-26 13:10:39] 🔐 Signature check: generated = f233dac7ae8bc83d00736cc17bdc0b2c, received = bfd98c2177bab1dcb205ccc6b856a070
+[2025-06-26 13:10:39] [ERROR] ⛔ Invalid signature
+[2025-06-26 13:15:15] hookPaymentReturn triggered
