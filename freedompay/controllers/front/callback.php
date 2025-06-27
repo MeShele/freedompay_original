@@ -11,7 +11,7 @@ class FreedomPayCallbackModuleFrontController extends ModuleFrontController
     public function __construct()
     {
         parent::__construct();
-        $this->logFile = dirname(__FILE__) . '/../../freedompay.log';
+        $this->logFile = dirname(__FILE__) . '/../../var/freedompay_' . date('Ymd') . '.log';
     }
 
     public function postProcess()
@@ -19,14 +19,14 @@ class FreedomPayCallbackModuleFrontController extends ModuleFrontController
         header('Content-Type: text/plain');
         $this->log('📩 Callback received: ' . print_r($_POST, true));
 
-        // 1. Получаем session_token
+        // 1. Get session_token
         $session_token = Tools::getValue('session_token');
         if (!$session_token) {
             $this->log('⛔ Missing session token', true);
             die('MISSING_SESSION_TOKEN');
         }
 
-        // 2. Находим cart_id по token'у
+        // 2. Find cart_id by token
         $cart_id = (int)Db::getInstance()->getValue(
             'SELECT cart_id FROM '._DB_PREFIX_.'freedompay_sessions
              WHERE session_token = "'.pSQL($session_token).'"'
@@ -37,17 +37,17 @@ class FreedomPayCallbackModuleFrontController extends ModuleFrontController
         }
         $this->log("✅ Found cart ID: $cart_id");
 
-        // 3. Проверка подписи
+        // 3. Validate signature
         if (!$this->validateSignature($_POST)) {
             $this->log('⛔ Invalid signature', true);
             die('INVALID_SIGNATURE');
         }
 
-        // 4. Результат оплаты
+        // 4. Payment result
         $result = (int)Tools::getValue('pg_result');
         $this->log("💳 pg_result = $result for cart $cart_id");
 
-        // 5. Защита от дублей
+        // 5. Check for existing order
         if ($existing = Order::getOrderByCartId($cart_id)) {
             $this->log("⚠️ Order $existing already exists for cart $cart_id");
             Db::getInstance()->delete('freedompay_sessions', 'session_token = "'.pSQL($session_token).'"');
@@ -55,21 +55,25 @@ class FreedomPayCallbackModuleFrontController extends ModuleFrontController
         }
 
         if ($result === 1) {
-            // 6. Успешная оплата → создаём заказ
+            // 6. Successful payment → create order
             if ($this->createOrder($cart_id)) {
                 $orderId = Order::getOrderByCartId($cart_id);
                 if ($orderId) {
-                    // 7. Перенос бронирования
-                    require_once(_PS_MODULE_DIR_.'hotelreservationsystem/classes/HotelBookingDetail.php');
-                    HotelBookingDetail::saveOrderBookingData($orderId, $cart_id);
-                    $this->log("🏨 Booking migrated for order $orderId");
+                    // 7. Transfer booking
+                    if (Module::isEnabled('hotelreservationsystem')) {
+                        require_once(_PS_MODULE_DIR_.'hotelreservationsystem/classes/HotelBookingDetail.php');
+                        HotelBookingDetail::saveOrderBookingData($orderId, $cart_id);
+                        $this->log("🏨 Booking migrated for order $orderId");
+                    } else {
+                        $this->log("⚠️ Hotel module not enabled", true);
+                    }
                 }
             }
         } else {
             $this->log("❌ Payment failed for cart $cart_id");
         }
 
-        // 8. Чистим таблицу сессий
+        // 8. Clean session table
         Db::getInstance()->delete('freedompay_sessions', 'session_token = "'.pSQL($session_token).'"');
         $this->log("🧹 Session token cleaned");
 
@@ -122,8 +126,8 @@ class FreedomPayCallbackModuleFrontController extends ModuleFrontController
             return false;
         }
 
-        // Можно заменить на Configuration::get('PS_OS_PAYMENT'), если уверен, что он настроен
-        $paidStatusId = 2; // ID статуса "Полная оплата получена"
+        // Use system payment status
+        $paidStatusId = Configuration::get('PS_OS_PAYMENT');
         $total = $cart->getOrderTotal(true, Cart::BOTH);
 
         $module->validateOrder(

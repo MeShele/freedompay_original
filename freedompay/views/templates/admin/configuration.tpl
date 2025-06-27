@@ -61,11 +61,8 @@
         
         <div class="alert alert-info">
             <h4>{l s='Debug Information'}</h4>
-            <p>{l s='Log file path:'} <code>{$module_dir}freedompay.log</code></p>
-            <p>{l s='Last modified:'} {if file_exists($module_dir|cat:'freedompay.log')}{date('Y-m-d H:i:s', filemtime($module_dir|cat:'freedompay.log'))}{else}{l s='File not found'}{/if}</p>
-            <a href="{$link->getAdminLink('AdminLogs')}" class="btn btn-default">
-                <i class="icon-search"></i> {l s='View system logs'}
-            </a>
+            <p>{l s='Log file path:'} <code>{$module_dir}var/freedompay_*.log</code></p>
+            <p class="text-danger"><i class="icon-warning-sign"></i> {l s='Logs may contain sensitive data - protect access!'}</p>
         </div>
     </div>
 </div>

@@ -2,7 +2,7 @@
 <module>
 	<name>freedompay</name>
 	<displayName><![CDATA[FreedomPay]]></displayName>
-	<version><![CDATA[4.0.2]]></version>
+	<version><![CDATA[4.0.4]]></version>
 	<description><![CDATA[Accept payments via FreedomPay for hotel bookings]]></description>
 	<author><![CDATA[FreedomPay]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>

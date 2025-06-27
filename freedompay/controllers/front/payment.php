@@ -9,7 +9,7 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
     public function __construct()
     {
         parent::__construct();
-        $this->logFile = dirname(__FILE__).'/../../freedompay.log';
+        $this->logFile = dirname(__FILE__).'/../../var/freedompay_' . date('Ymd') . '.log';
     }
 
     public function initContent()
@@ -34,12 +34,6 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
         $cart = $this->context->cart;
         $this->log("Cart ID: {$cart->id}, Customer ID: {$cart->id_customer}");
         
-        $this->log("Cart validation details:
-            id: {$cart->id}
-            customer: {$cart->id_customer}
-            module active: " . ($this->module->active ? 'yes' : 'no')
-        );
-        
         $invalid = false;
         $reasons = [];
         
@@ -61,6 +55,22 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
         if ($invalid) {
             $this->log('Invalid cart: ' . implode(', ', $reasons) . ', redirecting to step 1');
             Tools::redirect($this->context->link->getPageLink('order', true, null, array('step' => 1)));
+        }
+        
+        // Check if order already exists
+        if ($orderId = Order::getOrderByCartId($cart->id)) {
+            $this->log("Order already exists: $orderId, redirecting to confirmation");
+            Tools::redirect($this->context->link->getPageLink(
+                'order-confirmation',
+                true,
+                null,
+                [
+                    'id_cart' => $cart->id,
+                    'id_module' => $this->module->id,
+                    'id_order' => $orderId,
+                    'key' => $this->context->customer->secure_key
+                ]
+            ));
         }
         
         // Initialize payment with cart ID
@@ -85,7 +95,7 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
             $error = 'Payment module is not configured';
             $this->log($error, true);
             $this->errors[] = $this->module->l($error);
-            $this->setTemplate('payment_error.tpl');
+            $this->setTemplate('module:freedompay/views/templates/front/payment_error.tpl');
             return;
         }
         
@@ -165,10 +175,15 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($paymentData));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        
+        if (curl_errno($ch)) {
+            $this->log('cURL Error: ' . curl_error($ch), true);
+        }
+        
         curl_close($ch);
 
         $this->log("FreedomPay response (HTTP $httpCode): $response");
@@ -177,7 +192,7 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
             $error = "FreedomPay API returned HTTP code $httpCode";
             $this->log($error, true);
             $this->errors[] = $this->module->l($error);
-            $this->setTemplate('payment_error.tpl');
+            $this->setTemplate('module:freedompay/views/templates/front/payment_error.tpl');
             return;
         }
         
@@ -187,7 +202,7 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
             $error = "Failed to parse FreedomPay response";
             $this->log($error, true);
             $this->errors[] = $this->module->l($error);
-            $this->setTemplate('payment_error.tpl');
+            $this->setTemplate('module:freedompay/views/templates/front/payment_error.tpl');
             return;
         }
         
@@ -198,7 +213,7 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
             $error = "FreedomPay error $errorCode: $errorDesc";
             $this->log($error, true);
             $this->errors[] = $this->module->l('Payment initiation failed: ') . $errorDesc;
-            $this->setTemplate('payment_error.tpl');
+            $this->setTemplate('module:freedompay/views/templates/front/payment_error.tpl');
             return;
         }
         

@@ -11,25 +11,26 @@ class FreedomPay extends PaymentModule
     {
         $this->name = 'freedompay';
         $this->tab = 'payments_gateways';
-        $this->version = '4.0.2';
+        $this->version = '4.0.5';
         $this->author = 'FreedomPay';
         $this->need_instance = 0;
         $this->bootstrap = true;
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
         
-        // Setup log file
-        $this->logFile = dirname(__FILE__).'/freedompay.log';
-
         parent::__construct();
 
         $this->displayName = $this->l('FreedomPay');
         $this->description = $this->l('Accept payments via FreedomPay for hotel bookings');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+        
+        $this->logFile = dirname(__FILE__).'/var/freedompay_'.date('Ymd').'.log';
     }
 
     public function install()
     {
+        // Инициализация пути к лог-файлу
+        $this->logFile = dirname(__FILE__).'/var/freedompay_'.date('Ymd').'.log';
         $this->log('Installation started');
         
         if (!function_exists('curl_init')) {
@@ -37,9 +38,18 @@ class FreedomPay extends PaymentModule
             $this->_errors[] = $this->l('cURL extension is required');
             return false;
         }
+        
+        // Создаем папку для логов
+        $logDir = dirname($this->logFile);
+        if (!is_dir($logDir)) {
+            if (!@mkdir($logDir, 0755, true)) {
+                $this->_errors[] = $this->l('Cannot create log directory');
+                return false;
+            }
+        }
 
         $success = parent::install() 
-            && $this->registerHook('payment')
+            && $this->registerHook('payment') // Используем старый хук payment
             && $this->registerHook('paymentReturn')
             && $this->registerHook('header')
             && $this->registerHook('actionAuthentication')
@@ -61,7 +71,7 @@ class FreedomPay extends PaymentModule
         $this->log('Uninstallation started');
         
         $success = parent::uninstall()
-            && $this->unregisterHook('payment')
+            && $this->unregisterHook('paymentOptions')
             && $this->unregisterHook('paymentReturn')
             && $this->unregisterHook('header')
             && $this->unregisterHook('actionAuthentication')
@@ -104,6 +114,7 @@ class FreedomPay extends PaymentModule
 
     public function getContent()
     {
+        $output = '';
         $this->log('Loading module configuration page');
         
         if (Tools::isSubmit('submit_freedompay')) {
@@ -116,7 +127,7 @@ class FreedomPay extends PaymentModule
 
             if (empty($merchant_id) || empty($merchant_secret) || empty($api_url)) {
                 $this->log('Validation failed: all fields are required', true);
-                $output = $this->displayError($this->l('All fields are required'));
+                $output .= $this->displayError($this->l('All fields are required'));
             } else {
                 Configuration::updateValue('FREEDOMPAY_MERCHANT_ID', $merchant_id);
                 Configuration::updateValue('FREEDOMPAY_MERCHANT_SECRET', $merchant_secret);
@@ -124,7 +135,7 @@ class FreedomPay extends PaymentModule
                 Configuration::updateValue('FREEDOMPAY_TEST_MODE', $test_mode);
                 
                 $this->log('Settings updated successfully');
-                $output = $this->displayConfirmation($this->l('Settings updated'));
+                $output .= $this->displayConfirmation($this->l('Settings updated'));
             }
         }
 
@@ -140,13 +151,13 @@ class FreedomPay extends PaymentModule
         return $output . $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
     }
 
-    public function hookPayment($params)
+    public function hookPaymentOptions($params)
     {
-        $this->log('hookPayment triggered');
+        $this->log('hookPaymentOptions triggered');
         
         if (!$this->active) {
             $this->log('Module not active, skipping');
-            return;
+            return [];
         }
 
         $cart = $this->context->cart;
@@ -182,34 +193,60 @@ class FreedomPay extends PaymentModule
         
         if (!$is_booking) {
             $this->log('Not a booking cart, skipping payment button');
-            return;
+            return [];
+        }
+
+        // Check currency compatibility
+        $currency_order = new Currency($cart->id_currency);
+        $currencies_module = $this->getCurrency($cart->id_currency);
+        
+        if (!in_array($currency_order->id, array_keys($currencies_module))) {
+            $this->log('Currency not supported: '.$currency_order->id);
+            return [];
         }
 
         $booking_total = $cart->getOrderTotal(true, Cart::BOTH);
         $this->log("Booking total: $booking_total");
         
-        $this->context->smarty->assign(array(
-            'payment_link' => $this->context->link->getModuleLink('freedompay', 'payment', array(), true),
+        // Assign variables to template
+        $this->context->smarty->assign([
             'module_dir' => $this->getPathUri(),
             'booking_total' => $booking_total,
-        ));
-
-        $this->log('Displaying payment button');
-        return $this->display(__FILE__, 'views/templates/hook/payment.tpl');
+            'link' => $this->context->link,
+        ]);
+        
+        $paymentOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+        $paymentOption->setCallToActionText($this->l('Pay with FreedomPay'))
+            ->setModuleName($this->name)
+            ->setAction($this->context->link->getModuleLink(
+                $this->name,
+                'payment',
+                [],
+                true
+            ))
+            ->setAdditionalInformation($this->fetch('module:freedompay/views/templates/hook/payment.tpl'));
+        
+        return [$paymentOption];
     }
     
     public function hookPaymentReturn($params)
     {
-        $this->log('hookPaymentReturn triggered');
-        
         if (!$this->active) {
             return;
         }
         
-        $order = $params['objOrder'];
+        $order = $params['order'];
+        if ($order->module != $this->name) {
+            return;
+        }
+        
         $this->context->smarty->assign(array(
             'shop_name' => $this->context->shop->name,
-            'total' => Tools::displayPrice($order->getOrdersTotalPaid(), $this->context->currency, false),
+            'total' => Tools::displayPrice(
+                $order->getOrdersTotalPaid(),
+                new Currency($order->id_currency),
+                false
+            ),
             'status' => 'ok',
             'reference' => $order->reference,
             'contact_url' => $this->context->link->getPageLink('contact', true)
@@ -249,6 +286,42 @@ class FreedomPay extends PaymentModule
                 $this->log("Restored cart from session token: $cart_id");
             }
         }
+    }
+
+      public function hookPayment($params)
+    {
+        $this->log('hookPayment triggered');
+        
+        if (!$this->active) {
+            $this->log('Module not active, skipping');
+            return;
+        }
+
+        $cart = $this->context->cart;
+        $this->log("Cart ID: {$cart->id}, Customer ID: {$cart->id_customer}");
+
+        // Упрощенная проверка для бронирований
+        $is_booking = true; // Для тестирования показываем всегда
+
+        $this->log("Is booking cart: " . ($is_booking ? 'Yes' : 'No'));
+        
+        if (!$is_booking) {
+            $this->log('Not a booking cart, skipping payment button');
+            return;
+        }
+
+        $booking_total = $cart->getOrderTotal(true, Cart::BOTH);
+        $this->log("Booking total: $booking_total");
+        
+        // Передаем переменные в шаблон как в оригинальном модуле
+        $this->context->smarty->assign(array(
+            'payment_link' => $this->context->link->getModuleLink('freedompay', 'payment', array(), true),
+            'module_dir' => $this->getPathUri(),
+            'booking_total' => $booking_total,
+        ));
+
+        $this->log('Displaying payment button');
+        return $this->display(__FILE__, 'views/templates/hook/payment.tpl');
     }
     
     /**

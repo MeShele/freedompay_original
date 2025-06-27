@@ -5,8 +5,6 @@
         {foreach from=$errors item=error}
             <p>{$error}</p>
         {/foreach}
-    {elseif isset($error_message)}
-        <p>{$error_message}</p>
     {else}
         <p>{l s='An unknown error occurred during payment processing' mod='freedompay'}</p>
     {/if}
