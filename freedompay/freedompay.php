@@ -11,7 +11,7 @@ class FreedomPay extends PaymentModule
     {
         $this->name = 'freedompay';
         $this->tab = 'payments_gateways';
-        $this->version = '4.0.5';
+        $this->version = '4.0.7';
         $this->author = 'FreedomPay';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -49,8 +49,7 @@ class FreedomPay extends PaymentModule
         }
 
         $success = parent::install() 
-            && $this->registerHook('payment') // Используем старый хук payment
-            && $this->registerHook('paymentReturn')
+            && $this->registerHook('payment')
             && $this->registerHook('header')
             && $this->registerHook('actionAuthentication')
             && $this->registerHook('actionCustomerAccountAdd')
@@ -71,8 +70,7 @@ class FreedomPay extends PaymentModule
         $this->log('Uninstallation started');
         
         $success = parent::uninstall()
-            && $this->unregisterHook('paymentOptions')
-            && $this->unregisterHook('paymentReturn')
+            && $this->unregisterHook('payment')
             && $this->unregisterHook('header')
             && $this->unregisterHook('actionAuthentication')
             && $this->unregisterHook('actionCustomerAccountAdd')
@@ -151,108 +149,40 @@ class FreedomPay extends PaymentModule
         return $output . $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
     }
 
-    public function hookPaymentOptions($params)
+    public function hookPayment($params)
     {
-        $this->log('hookPaymentOptions triggered');
+        $this->log('hookPayment triggered');
         
         if (!$this->active) {
             $this->log('Module not active, skipping');
-            return [];
+            return;
         }
 
         $cart = $this->context->cart;
         $this->log("Cart ID: {$cart->id}, Customer ID: {$cart->id_customer}");
 
-        // Check if it's a booking cart
-        $is_booking = false;
-        $products = $cart->getProducts();
-        $this->log("Cart products count: " . count($products));
-        
-        foreach ($products as $product) {
-            $this->log("Checking product ID: {$product['id_product']}");
-            
-            try {
-                $is_room = Db::getInstance()->getValue('
-                    SELECT id_product 
-                    FROM '._DB_PREFIX_.'htl_room_type 
-                    WHERE id_product = '.(int)$product['id_product']
-                );
-                
-                $this->log("Is room product: " . ($is_room ? 'Yes' : 'No'));
-                
-                if ($is_room) {
-                    $is_booking = true;
-                    break;
-                }
-            } catch (Exception $e) {
-                $this->log("Product check error: " . $e->getMessage(), true);
-            }
-        }
-        
+        // Упрощенная проверка для бронирований
+        $is_booking = true; // Всегда показываем кнопку
+
         $this->log("Is booking cart: " . ($is_booking ? 'Yes' : 'No'));
         
         if (!$is_booking) {
             $this->log('Not a booking cart, skipping payment button');
-            return [];
-        }
-
-        // Check currency compatibility
-        $currency_order = new Currency($cart->id_currency);
-        $currencies_module = $this->getCurrency($cart->id_currency);
-        
-        if (!in_array($currency_order->id, array_keys($currencies_module))) {
-            $this->log('Currency not supported: '.$currency_order->id);
-            return [];
+            return;
         }
 
         $booking_total = $cart->getOrderTotal(true, Cart::BOTH);
         $this->log("Booking total: $booking_total");
         
-        // Assign variables to template
-        $this->context->smarty->assign([
+        // Передаем переменные в шаблон
+        $this->context->smarty->assign(array(
+            'payment_link' => $this->context->link->getModuleLink('freedompay', 'payment', array(), true),
             'module_dir' => $this->getPathUri(),
             'booking_total' => $booking_total,
-            'link' => $this->context->link,
-        ]);
-        
-        $paymentOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-        $paymentOption->setCallToActionText($this->l('Pay with FreedomPay'))
-            ->setModuleName($this->name)
-            ->setAction($this->context->link->getModuleLink(
-                $this->name,
-                'payment',
-                [],
-                true
-            ))
-            ->setAdditionalInformation($this->fetch('module:freedompay/views/templates/hook/payment.tpl'));
-        
-        return [$paymentOption];
-    }
-    
-    public function hookPaymentReturn($params)
-    {
-        if (!$this->active) {
-            return;
-        }
-        
-        $order = $params['order'];
-        if ($order->module != $this->name) {
-            return;
-        }
-        
-        $this->context->smarty->assign(array(
-            'shop_name' => $this->context->shop->name,
-            'total' => Tools::displayPrice(
-                $order->getOrdersTotalPaid(),
-                new Currency($order->id_currency),
-                false
-            ),
-            'status' => 'ok',
-            'reference' => $order->reference,
-            'contact_url' => $this->context->link->getPageLink('contact', true)
         ));
-        
-        return $this->display(__FILE__, 'views/templates/hook/payment_return.tpl');
+
+        $this->log('Displaying payment button');
+        return $this->display(__FILE__, 'views/templates/hook/payment.tpl');
     }
     
     public function hookHeader()
@@ -286,42 +216,6 @@ class FreedomPay extends PaymentModule
                 $this->log("Restored cart from session token: $cart_id");
             }
         }
-    }
-
-      public function hookPayment($params)
-    {
-        $this->log('hookPayment triggered');
-        
-        if (!$this->active) {
-            $this->log('Module not active, skipping');
-            return;
-        }
-
-        $cart = $this->context->cart;
-        $this->log("Cart ID: {$cart->id}, Customer ID: {$cart->id_customer}");
-
-        // Упрощенная проверка для бронирований
-        $is_booking = true; // Для тестирования показываем всегда
-
-        $this->log("Is booking cart: " . ($is_booking ? 'Yes' : 'No'));
-        
-        if (!$is_booking) {
-            $this->log('Not a booking cart, skipping payment button');
-            return;
-        }
-
-        $booking_total = $cart->getOrderTotal(true, Cart::BOTH);
-        $this->log("Booking total: $booking_total");
-        
-        // Передаем переменные в шаблон как в оригинальном модуле
-        $this->context->smarty->assign(array(
-            'payment_link' => $this->context->link->getModuleLink('freedompay', 'payment', array(), true),
-            'module_dir' => $this->getPathUri(),
-            'booking_total' => $booking_total,
-        ));
-
-        $this->log('Displaying payment button');
-        return $this->display(__FILE__, 'views/templates/hook/payment.tpl');
     }
     
     /**

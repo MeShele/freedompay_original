@@ -130,16 +130,15 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
             'pg_currency' => $this->context->currency->iso_code,
             'pg_description' => 'Booking #' . $cart->id,
             'pg_salt' => Tools::passwdGen(10, 'NUMERIC'),
-            'pg_success_url' => $this->context->link->getPageLink(
-                'order-confirmation',
-                true,
-                null,
+            // Исправленный SUCCESS URL
+            'pg_success_url' => $this->context->link->getModuleLink(
+                'freedompay',
+                'success',
                 array(
                     'id_cart' => $cart->id,
-                    'id_module' => $this->module->id,
                     'key' => $this->context->customer->secure_key,
-                    'session_token' => $session_token
-                )
+                ),
+                true
             ),
             'pg_failure_url' => $this->context->link->getPageLink(
                 'order',
@@ -147,6 +146,7 @@ class FreedomPayPaymentModuleFrontController extends ModuleFrontController
                 null,
                 array('step' => 3)
             ),
+            // RESULT URL для callback
             'pg_result_url' => $this->context->link->getModuleLink(
                 'freedompay',
                 'callback',
